@@ -1,0 +1,335 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// 1. IDENTITY & AUTHENTICATION
+// ==========================================
+
+model User {
+  id            String    @id @default(cuid(2))
+  firstName     String    @map("first_name")
+  lastName      String    @map("last_name")
+  email         String    @unique
+  password      String
+  phoneNumber   String    @map("phone_number")
+  role          Role      @default(USER)
+  hasPets       Boolean   @map("has_pets")
+  isActive      Boolean   @default(true) @map("is_active")
+  
+  verifiedAt    DateTime? @map("verified_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  accounts      Account[]
+  sessions      Session[]
+  addresses     Address[]
+  orders        Order[]
+  cartItems     CartItem[]
+  healthTickets HealthTicket[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid(2))
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid(2))
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Address {
+  id      String      @id @default(cuid(2))
+  userId  String      @map("user_id")
+  type    AddressType
+  street  String
+  city    String
+  state   String
+  zipCode String      @map("zip_code")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+// ==========================================
+// 2. PRODUCT CATALOG
+// ==========================================
+
+model Plant {
+  id             String        @id @default(cuid(2))
+  name           String
+  description    String        @db.Text
+  price          Int           // Stored in Paise
+  stockQuantity  Int           @default(0) @map("stock_quantity")
+  careDifficulty CareLevel     @default(Beginner) @map("care_difficulty")
+  categoryId     String        @map("category_id")
+  
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  category      PlantCategory  @relation(fields: [categoryId], references: [id])
+  images        PlantImage[]
+  orderItems    OrderItem[]
+  cartItems     CartItem[]
+  healthTickets HealthTicket[]
+
+  @@map("plants")
+}
+
+model PlantCategory {
+  id     String  @id @default(cuid(2))
+  name   String  @unique
+  plants Plant[]
+
+  @@map("plant_categories")
+}
+
+model PlantImage {
+  id        String  @id @default(cuid(2))
+  plantId   String  @map("plant_id")
+  url       String  @db.Text
+  isPrimary Boolean @default(false) @map("is_primary")
+
+  plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  @@map("plant_images")
+}
+
+// ==========================================
+// 3. SHOPPING & LOGISTICS
+// ==========================================
+
+model CartItem {
+  id       String @id @default(cuid(2))
+  userId   String @map("user_id")
+  plantId  String @map("plant_id")
+  quantity Int
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+
+  @@map("cart_items")
+}
+
+model Order {
+  id              String      @id @default(cuid(2))
+  userId          String      @map("user_id")
+  totalPrice      Int         @map("total_price")
+  status          OrderStatus @default(PENDING)
+  sourceLocation  String      @map("source_location")
+  deliveryStaffId String?     @map("delivery_staff_id")
+  
+  createdAt       DateTime    @default(now()) @map("created_at")
+  deliveryAt      DateTime?   @map("delivery_at")
+
+  user            User             @relation(fields: [userId], references: [id])
+  deliveryStaff   Staff?           @relation(fields: [deliveryStaffId], references: [id])
+  items           OrderItem[]
+  serviceBookings ServiceBooking[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String @id @default(cuid(2))
+  orderId         String @map("order_id")
+  plantId         String @map("plant_id")
+  quantity        Int
+  priceAtPurchase Int    @map("price_at_purchase")
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  plant   Plant   @relation(fields: [plantId], references: [id])
+  returns Return[]
+
+  @@map("order_items")
+}
+
+// ==========================================
+// 4. STAFF & SERVICES
+// ==========================================
+
+model Staff {
+  id              String    @id @default(cuid(2))
+  name            String
+  email           String    @unique
+  password        String
+  role            StaffRole
+  currentLocation String?   @map("current_location")
+  isAvailable     Boolean   @default(true) @map("is_available")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  deliveries      Order[]
+  serviceBookings ServiceBooking[]
+
+  @@map("staff_members")
+}
+
+model ServiceBooking {
+  id              String        @id @default(cuid(2))
+  orderId         String        @map("order_id")
+  assignedStaffId String        @map("assigned_staff_id")
+  serviceType     ServiceType   @map("service_type")
+  scheduledDate   DateTime      @map("scheduled_date")
+  status          BookingStatus @default(SCHEDULED)
+
+  order    Order     @relation(fields: [orderId], references: [id])
+  staff    Staff     @relation(fields: [assignedStaffId], references: [id])
+  careLogs CareLog[]
+
+  @@map("service_bookings")
+}
+
+model CareLog {
+  id          String         @id @default(cuid(2))
+  bookingId   String         @map("booking_id")
+  actionTaken String         @db.Text @map("action_taken")
+  notes       String?        @db.Text
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  booking ServiceBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("care_logs")
+}
+
+// ==========================================
+// 5. SUPPORT & RETURNS
+// ==========================================
+
+model HealthTicket {
+  id          String       @id @default(cuid(2))
+  userId      String       @map("user_id")
+  plantId     String       @map("plant_id")
+  description String       @db.Text
+  status      TicketStatus @default(OPEN)
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  plant Plant @relation(fields: [plantId], references: [id])
+  media Media[]
+
+  @@map("health_tickets")
+}
+
+model Media {
+  id        String   @id @default(cuid(2))
+  ticketId  String   @map("ticket_id")
+  fileUrl   String   @db.Text @map("file_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ticket HealthTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@map("media")
+}
+
+model Return {
+  id          String       @id @default(cuid(2))
+  orderItemId String       @unique @map("order_item_id")
+  reason      String       @db.Text
+  status      ReturnStatus @default(PENDING)
+  requestDate DateTime     @default(now()) @map("request_date")
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id])
+
+  @@map("returns")
+}
+
+// ==========================================
+// 6. ENUMS
+// ==========================================
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum StaffRole {
+  ADMIN
+  WAREHOUSE_MANAGER
+  DELIVERY_BOY
+  PLANT_EXPERT
+}
+
+enum AddressType {
+  Shipping
+  Billing
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum CareLevel {
+  Beginner
+  MidLevel
+  Expert
+}
+
+enum ServiceType {
+  INSTALLATION
+  MAINTENANCE
+  REPAIR
+}
+
+enum BookingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum TicketStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+}
+
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
