@@ -1,16 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { navConfig } from "@/config/nav-config";
-
+import { logoConfig } from "@/config/nav-config";
 
 export function Logo() {
 	return (
-		<Link href={navConfig.logo.href} className="pl-6 py-4">
+		<Link href={logoConfig.href} className="flex items-center h-full pl-6">
 			<Image
-				src={navConfig.logo.svg}
-				alt={navConfig.logo.alt}
-				width={navConfig.logo.width}
-				height={navConfig.logo.height}
+				src={logoConfig.svg}
+				alt={logoConfig.alt}
+				width={logoConfig.width}
+				height={logoConfig.height}
 				priority
 				className="h-auto w-auto object-contain"
 			/>
