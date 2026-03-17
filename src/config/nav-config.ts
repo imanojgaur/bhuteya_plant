@@ -16,78 +16,42 @@ const navConfig: NavItem[] = [
 	{
 		title: "New & Featured",
 		href: ROUTES.HOME,
-		items: [
-			{
-				title: "Featured",
-				items: [
-					{
-						title: "New",
-						href: ROUTES.HOME,
-					},
-					{
-						title: "BestSeller",
-						href: ROUTES.HOME,
-					},
-					{
-						title: "Top picks under $299",
-						href: ROUTES.HOME,
-					},
-				],
-			},
-
-			{
-				title: "Recomendation",
-				href: ROUTES.HOME,
-			},
-
-			{
-				title: "Air Purifiers",
-				href: "/",
-			},
-		],
 	},
-	{
-		title: "Trending",
-		href: ROUTES.TRENDING,
-		items: [
-			{
-				title: "Alert Dialog",
-				href: "/docs/primitives/alert-dialog",
-				description: "A modal dialog that interrupts the user.",
-			},
-			{
-				title: "Hover Card",
-				href: "/docs/primitives/hover-card",
-				description: "For sighted users to preview content.",
-			},
-		],
-	},
-
 	{
 		title: "Categories",
 		href: ROUTES.CATEGORIES.ROOT,
 		items: [
 			{
-				title: "Size",
-				href: ROUTES.CATEGORIES.SIZE,
+				title: "By Plant Type",
 				items: [
-					{
-						title: "Xl",
-						href: ROUTES.CATEGORIES.SIZE,
-					},
-					{
-						title: "l",
-						href: ROUTES.CATEGORIES.SIZE,
-					},
-					{
-						title: "s",
-						href: ROUTES.CATEGORIES.SIZE,
-					},
+					{ title: "Succulents", href: ROUTES.CATEGORIES.SUCCULENTS },
+					{ title: "Cactus", href: ROUTES.CATEGORIES.CACTUS },
+					{ title: "Tropical", href: ROUTES.CATEGORIES.TROPICAL },
+					{ title: "Air Plant", href: ROUTES.CATEGORIES.AIR_PLANT },
+					{ title: "Flowering", href: ROUTES.CATEGORIES.FLOWERING },
+				],
+			},
+			{
+				title: "Size",
+				items: [
+					{ title: "S", href: ROUTES.CATEGORIES.SIZE_S },
+					{ title: "L", href: ROUTES.CATEGORIES.SIZE_L },
+					{ title: "XL", href: ROUTES.CATEGORIES.SIZE_XL },
+				],
+			},
+			{
+				title: "Indoor & Outdoor",
+				items: [
+					{ title: "Indoor", href: ROUTES.CATEGORIES.INDOOR },
+					{ title: "Outdoor", href: ROUTES.CATEGORIES.OUTDOOR },
 				],
 			},
 		],
 	},
-
+	{
+		title: "Food & Tools",
+		href: ROUTES.FOOD_AND_TOOLS,
+	},
 	{
 		title: "Services",
 		href: ROUTES.SERVICES.ROOT,
@@ -97,16 +61,19 @@ const navConfig: NavItem[] = [
 				href: ROUTES.SERVICES.BULK_INSTALLATION,
 			},
 			{
-				title: "Consult",
+				title: "Consult a Doctor",
 				href: ROUTES.SERVICES.CONSULT,
 			},
 			{
 				title: "Maintenance",
 				href: ROUTES.SERVICES.MAINTENANCE,
 			},
+			{
+				title: "Warranty",
+				href: ROUTES.SERVICES.WARRENTY,
+			},
 		],
 	},
-
 	{
 		title: "About Us",
 		href: ROUTES.HOME,
