@@ -95,52 +95,57 @@ model Address {
 // ==========================================
 
 model Plant {
-  id             String    @id @default(cuid(2))
+  id             String          @id @default(cuid(2))
+  shopifyId      String?         @unique // Critical for syncing scraper data!
   name           String
-  slug           String    @unique
-  description    String    @db.Text
-  price          Int // Stored in Paise
-  stockQuantity  Int       @default(0) @map("stock_quantity")
-  careDifficulty CareLevel @default(Beginner) @map("care_difficulty")
-  subCategoryId  String    @map("sub_category_id")
+  slug           String          @unique // e.g., "vastu-friendly-combo"
+  description    String?         @db.Text
+  
+  // Pricing (Stored in Paise to avoid floating-point math errors)
+  price          Int             
+  compareAtPrice Int?            @map("compare_at_price") 
+  
+  stockQuantity  Int             @default(0) @map("stock_quantity")
+  careDifficulty CareLevel       @default(Beginner) @map("care_difficulty")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
 
-  plantSubCategory PlantSubCategory @relation(fields: [subCategoryId], references: [id])
-  images           PlantImage[]
-  orderItems       OrderItem[]
-  cartItems        CartItem[]
-  healthTickets    HealthTicket[]
+  // ---------------------------------------------------------
+  // THE MAGIC LINE: Implicit Many-to-Many relationship
+  // A single Plant can be in "Indoor", "Office", AND "Vastu"
+  // ---------------------------------------------------------
+  categories     PlantCategory[]
+
+  images         PlantImage[]
+  orderItems     OrderItem[]
+  cartItems      CartItem[]
+  healthTickets  HealthTicket[]
 
   @@map("plants")
 }
 
 model PlantCategory {
-  id               String             @id @default(cuid(2))
-  name             String             @unique
-  plantSubCategory PlantSubCategory[]
+  id          String   @id @default(cuid(2))
+  name        String   @unique // e.g., "Air Purifying Plants"
+  slug        String   @unique // e.g., "air-purifying-plants"
+  description String?  @db.Text
+
+  // ---------------------------------------------------------
+  //Implicit Many-to-Many relationship
+  // ---------------------------------------------------------
+  plants      Plant[]
 
   @@map("plant_categories")
 }
 
-model PlantSubCategory {
-  id         String        @id @default(cuid(2))
-  name       String
-  categoryId String        @map("category_id")
-  category   PlantCategory @relation(fields: [categoryId], references: [id])
-  plants     Plant[]
-
-  @@map("plant_sub_categories")
-}
-
 model PlantImage {
-  id        String  @id @default(cuid(2))
-  plantId   String  @map("plant_id")
-  url       String  @db.Text
-  isPrimary Boolean @default(false) @map("is_primary")
+  id        String   @id @default(cuid(2))
+  plantId   String   @map("plant_id")
+  url       String   @db.Text
+  isPrimary Boolean  @default(false) @map("is_primary")
 
-  plant Plant @relation(fields: [plantId], references: [id], onDelete: Cascade)
+  plant     Plant    @relation(fields: [plantId], references: [id], onDelete: Cascade)
 
   @@map("plant_images")
 }
