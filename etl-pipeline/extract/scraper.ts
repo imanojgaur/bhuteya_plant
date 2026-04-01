@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { chromium } from 'playwright';
-import type { PlantCardData } from '@/types';
+import type { PlantData } from '@/types';
 
 
 async function scrapeCollections(urls: string[]) {
@@ -11,7 +11,7 @@ async function scrapeCollections(urls: string[]) {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
   });
 
-  const masterPlantList: PlantCardData[] = [];
+  const masterPlantList: PlantData[] = [];
   const baseUrl = "https://kyari.co";
 
   for (const url of urls) {
@@ -46,7 +46,7 @@ async function scrapeCollections(urls: string[]) {
       
       await page.waitForTimeout(3000); 
 
-      const pagePlants: PlantCardData[] = await page.evaluate(({ base, currentCategory }) => {
+      const pagePlants: PlantData[] = await page.evaluate(({ base, currentCategory }) => {
         const productCards = document.querySelectorAll('.product-item');
         
         return Array.from(productCards).map(card => {
@@ -127,7 +127,7 @@ async function scrapeCollections(urls: string[]) {
 
   console.log("\n🧹 Merging categories for duplicate plants...");
   
-  const plantDictionary = new Map<string, PlantCardData>();
+  const plantDictionary = new Map<string, PlantData>();
 
   for (const plant of masterPlantList) {
       const existingPlant = plantDictionary.get(plant.shopifyId);

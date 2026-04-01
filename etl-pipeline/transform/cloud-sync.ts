@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from 'node:url';
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
-import type { ImageTypes, PlantCardData } from "@/types";
+import type { ImageTypes, ScrapedPlantData } from "@/types";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -56,7 +56,7 @@ async function runCloudinarySync() {
 	let failCount = 0;
 
 	for (let i = 0; i < rawPlants.length; i++) {
-		const plant: PlantCardData = rawPlants[i];
+		const plant: ScrapedPlantData = rawPlants[i];
 		console.log(`⏳ Processing [${i + 1}/${rawPlants.length}]: ${plant.name}`);
 
 		try {
@@ -66,6 +66,9 @@ async function runCloudinarySync() {
 			// Loop through however many images this specific plant has
 			for (const kyariUrl of plant.images) {
 				// Tell Cloudinary to download the image from Kyari's URL
+				if (typeof kyariUrl !== 'string') {
+                    throw new Error("Expected a string URL, but got an object! ");
+                }
 				const uploadResult = await cloudinary.uploader.upload(kyariUrl, {
 					folder: "kyari_catalog", // Organizes all your images into one neat folder in Cloudinary
 					overwrite: true, // Prevents creating duplicates if you run the script twice
