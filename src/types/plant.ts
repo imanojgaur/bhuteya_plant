@@ -10,7 +10,7 @@ interface PlantData {
   name: string;
   slug: string;
   price: number;
-  compareAtPrice: number;
+  compareAtPrice: number | null; 
   inStock: boolean;
   productUrl: string;
   description: string;
@@ -25,10 +25,20 @@ interface EnrichedPlantData extends PlantData {
   images: ImageTypes[];
 }
 
+interface PlantCardData extends Pick<PlantData, "name" | "slug" | "price" | "compareAtPrice"> {
+  id: string;             
+  stockQuantity: number;  
+  categories: {           
+      name: string;
+      slug: string;
+  }[]; 
+  images: ImageTypes[];   
+}
 
 export type { 
   PlantData, 
   ImageTypes, 
   ScrapedPlantData, 
-  EnrichedPlantData 
+  EnrichedPlantData,
+  PlantCardData 
 }
